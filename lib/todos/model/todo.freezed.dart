@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Todo {
 
- int get id;@JsonKey(name: 'todo') String get title;// API key "todo" → model "title"
+ // ignore: duplicate_ignore
+ int get id;// ignore: invalid_annotation_target
+@JsonKey(name: 'todo') String get title;// API key "todo" → model "title"
  bool get completed; int get userId;
 /// Create a copy of Todo
 /// with the given fields replaced by the non-null parameter values.
@@ -217,6 +219,8 @@ class _Todo implements Todo {
   factory _Todo.fromJson(Map<String, dynamic> json) => _$TodoFromJson(json);
 
 @override final  int id;
+// ignore: duplicate_ignore
+// ignore: invalid_annotation_target
 @override@JsonKey(name: 'todo') final  String title;
 // API key "todo" → model "title"
 @override final  bool completed;

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:crud_project/api/endpoints.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DioClient {
   DioClient._();
@@ -40,3 +41,7 @@ class DioClient {
     return dio;
   }
 }
+
+final dioProvider = Provider<Dio>((ref) {
+  return DioClient.create();
+});
