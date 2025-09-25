@@ -111,7 +111,7 @@ class TodosRepositoryImpl implements TodosRepository {
     int limit = 10,
     int skip = 0,
   }) async {
-    final res = await dio.delete<Map<String, dynamic>>(
+    final res = await dio.get<Map<String, dynamic>>(
       Urls.searchTodos,
       queryParameters: {'q': query, 'limit': limit, 'skip': skip},
     );
@@ -132,7 +132,7 @@ class TodosRepositoryImpl implements TodosRepository {
     int limit = 10,
     int skip = 0,
   }) async {
-    final res = await dio.delete<Map<String, dynamic>>(
+    final res = await dio.get<Map<String, dynamic>>(
       Urls.userTodos(userId),
       queryParameters: {'limit': limit, 'skip': skip},
     );

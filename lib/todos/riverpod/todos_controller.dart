@@ -127,75 +127,80 @@ class TodosController extends Notifier<TodosState> {
   }
 
   Future<void> toggleComplete(int id, bool value) async {
-    // 1) Find the item index
+    // Find index
     final idx = state.items.indexWhere((t) => t.id == id);
-    if (idx == -1) return; // nothing to toggle
+    if (idx == -1) return;
 
-    // 2) Keep a snapshot to allow reverting on failure
-    final prevItems = state.items;
-
-    // 3) Optimistic update (no global loading flag to keep UI responsive)
-    final updatedItem = prevItems[idx].copyWith(completed: value);
-    final nextItems = List<Todo>.of(prevItems);
-    nextItems[idx] = updatedItem;
-    state = state.copyWith(items: nextItems, error: null);
-
-    try {
-      // 4) Persist on server
-      await _repo.updateTodo(id, completed: value);
-      // (Optional) You could re-fetch the single item if the API returns extra fields
-    } catch (e) {
-      // 5) Revert on failure
-      state = state.copyWith(items: prevItems, error: e.toString());
-    }
-  }
-
-  @override
-  Future<void> remove(int id) async {
-    // 1) Find the item index
-    final idx = state.items.indexWhere((t) => t.id == id);
-    if (idx == -1) return; // nothing to remove
-
-    // 2) Keep snapshots to allow reverting on failure
-    final prevItems = state.items;
-    final prevTotal = state.total;
-
-    // 3) Optimistic remove (do not block the whole UI)
-    final nextItems = List<Todo>.of(prevItems)..removeAt(idx);
+    // Mark this item as mutating
     state = state.copyWith(
-      items: nextItems,
-      total: (prevTotal > 0) ? prevTotal - 1 : 0,
+      mutatingIds: {...state.mutatingIds, id},
       error: null,
     );
 
+    // Snapshot for revert
+    final prevItems = state.items;
+
+    // Optimistic update
+    final updated = prevItems[idx].copyWith(completed: value);
+    final next = List<Todo>.of(prevItems)..[idx] = updated;
+    state = state.copyWith(items: next);
+
     try {
-      // 4) Persist on server
+      // Persist on server; (optionally) replace with server's response
+      await _repo.updateTodo(id, completed: value);
+    } catch (e) {
+      // Revert on failure
+      state = state.copyWith(items: prevItems, error: e.toString());
+    } finally {
+      // Clear per-item loading
+      final m = {...state.mutatingIds}..remove(id);
+      state = state.copyWith(mutatingIds: m);
+    }
+  }
+
+  Future<void> remove(int id) async {
+    // Find index
+    final idx = state.items.indexWhere((t) => t.id == id);
+    if (idx == -1) return;
+
+    // Mark item as mutating
+    state = state.copyWith(
+      mutatingIds: {...state.mutatingIds, id},
+      error: null,
+    );
+
+    // Snapshots
+    final prevItems = state.items;
+    final prevTotal = state.total;
+
+    // Optimistic remove
+    final next = List<Todo>.of(prevItems)..removeAt(idx);
+    state = state.copyWith(
+      items: next,
+      total: prevTotal > 0 ? prevTotal - 1 : 0,
+    );
+
+    try {
       final ok = await _repo.deleteTodo(id);
       if (!ok) {
-        // 5a) If API explicitly says "not deleted", revert
+        // Explicit failure → revert
         state = state.copyWith(
           items: prevItems,
           total: prevTotal,
           error: 'Delete failed',
         );
-      } else {
-        // (Optional) Backfill one item to keep the page "full"
-        // final hasMore = state.skip + state.items.length < state.total;
-        // if (hasMore) {
-        //   final backfillSkip = state.skip + state.items.length;
-        //   final page = await _repo.fetchTodos(limit: 1, skip: backfillSkip);
-        //   if (page.todos.isNotEmpty) {
-        //     state = state.copyWith(items: [...state.items, page.todos.first]);
-        //   }
-        // }
       }
     } catch (e) {
-      // 5b) On network/server failure, revert
+      // Network/server failure → revert
       state = state.copyWith(
         items: prevItems,
         total: prevTotal,
         error: e.toString(),
       );
+    } finally {
+      // Clear per-item loading
+      final m = {...state.mutatingIds}..remove(id);
+      state = state.copyWith(mutatingIds: m);
     }
   }
 }

@@ -1,6 +1,8 @@
-part of 'todo_cubit.dart';
+// part of 'todo_cubit.dart';
 
-@immutable
-sealed class TodoState {}
+// @immutable
+// sealed class TodoState {}
 
-final class TodoInitial extends TodoState {}
+// final class TodoInitial extends TodoState {
+
+// }

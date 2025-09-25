@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:crud_project/todos/view/widgets/todos_riverpod_view.dart';
 
 class ChoosePage extends StatelessWidget {
   const ChoosePage({super.key});
@@ -10,9 +11,23 @@ class ChoosePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ChooseCard(title: "Bloc"),
+            ChooseCard(
+              title: "Bloc",
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const TodosRiverpodView()),
+                );
+              },
+            ),
             SizedBox(height: 20),
-            ChooseCard(title: "Riverpod"),
+            ChooseCard(
+              title: "Riverpod",
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const TodosRiverpodView()),
+                );
+              },
+            ),
           ],
         ),
       ),
