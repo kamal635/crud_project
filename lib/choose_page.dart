@@ -1,5 +1,10 @@
+import 'package:crud_project/api/dio_client.dart';
+import 'package:crud_project/todos/bloc/cubit/todo_cubit.dart';
+import 'package:crud_project/todos/repo/todos_repository_impl.dart';
+import 'package:crud_project/todos/view/widgets/todos_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:crud_project/todos/view/widgets/todos_riverpod_view.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChoosePage extends StatelessWidget {
   const ChoosePage({super.key});
@@ -15,7 +20,14 @@ class ChoosePage extends StatelessWidget {
               title: "Bloc",
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const TodosRiverpodView()),
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => TodoCubit(
+                        TodosRepositoryImpl(dio: DioClient.create()),
+                      ),
+                      child: const TodosBlocView(),
+                    ),
+                  ),
                 );
               },
             ),
